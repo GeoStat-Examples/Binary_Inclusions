@@ -1,4 +1,13 @@
-"""Generate an ensemble of transport simulations with ogs5py and binary inclusino structure"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Script to run an ensemble of subsurface flow and transport simulations with 
+OpenGeoSys (via the API ogs5py) on random binary inclusion structures of 
+hydraulic conductivity.
+
+@author: A. Zech
+Licence MIT, A.Zech, 2020
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,21 +17,12 @@ import ogs5py
 import binary_inclusions as bi
 import sim_processing as sp
 
+############################
+### Simulation Settings  ###
+############################
 ### -----------------------------------------------------------------------###
 # size of the ensembles
 ens_size = 200
-
-### ------- includion structure configuration -----------------------------###
-inclusions = dict(
-    dim=2,
-    k_bulk=1e-5,  # conductivity value of bulk
-    k_incl=1e-3,  # conductivity value of inclusions
-    nx=22,  # number of inclusions in x-direction
-    lx=10,  # inclusion length in x-direction
-    nz=20,  # number of inclusions in z-direction
-    lz=0.5,  # inclusion length in z-direction
-    nz_incl=3,  # number of inclusions with different K
-)
 
 ### ------------- ogs configuration ---------------------------------------###
 porosity = 0.31
@@ -38,37 +38,51 @@ domain.update(
 head_left, head_right = 63.0, 62.34
 source_pump = 1.166e-5
 
-time_steps = np.array([72, 997])
+time_steps = np.array([72, 500])
 time_step_size = np.array([3600, 86400])
-out_steps = 86400.0 * np.array([9, 49, 126, 202, 279, 370, 503, 594, 1000])
+out_steps = 86400.0 * np.array([9, 49, 126, 202, 279, 370, 503])
 
 ### rfd file -time dependent source/boundary conditions
 rfd_tim = [0, 86400.0, 172800.0, 176400.0, 259200.0, 864000.0, 8640000.0, 86400000.0]
 rfd_mass = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0]
 
-### -------------- binary structure setup ----------------------------------###
-np.random.seed(20201101)  # 20201012+2
-BI = bi.Simple_Binary_Inclusions(
-    dim=2,
-    k_bulk=1e-5,  # conductivity value of bulk
-    k_incl=1e-3,  # conductivity value of inclusions
-    nx=22,  # number of inclusions in x-direction
-    lx=10,  # inclusion length in x-direction
-    nz=20,  # number of inclusions in z-direction
-    lz=0.5,  # inclusion length in z-direction
-    nz_incl=3,  # number of inclusions with different K
+####################################################
+### Settings of block binary inclusion structure ###
+####################################################
+settings_binaryinclusions = dict(
+    dim=2,          # dimensionality of structure
+    k_bulk=1e-5,    # conductivity value of bulk
+    k_incl=1e-3,    # conductivity value of inclusions
+    nx=22,          # number of units in x-direction
+    lx=10,          # unit length in x-direction
+    nz=20,          # number of units in z-direction
+    lz=0.5,         # unit length in z-direction
+    nz_incl=3,      # number of inclusions (units with K_incl)
 )
 
-### -------------- ogs simulation run  -------------------------------------###
+### -------------- binary structure setup ----------------------------------###
+BI = bi.Simple_Binary_Inclusions(**settings_binaryinclusions)
+
+### -------------- Ensemble output files -----------------------------------###
+file_ensmean="../results/ensemble/Ensemble_mean.csv"
+file_ensmean_agg="../results/ensemble/Ensemble_mean_agg.csv"
+fig_ensmean="../results/ensemble/Ensemble_mean_aggregated.png"
 ensemble_mass = []
 ensemble_mass_agg = []
 
-for nn in range(ens_size):
+
+### -------------- ogs ensemble simulation run  ----------------------------###
+for sim_id in range(ens_size):
+
+    ###############################
+    ### Setup Simulation Files  ###
+    ###############################
+    print("Initiate Tranport Simulation with OpenGeoSys: Realization {}".format(sim_id))
 
     ### ------------------------generate ogs base class------------------------- #
     sim = ogs5py.OGS(
-        task_root="../results/simulations/sim_{}".format(nn),
-        task_id="sim_{}_".format(nn),
+        task_root="../results/ensemble/sim_{}".format(sim_id),
+        task_id="sim_{}_".format(sim_id),
     )
 
     ### ----------------------- write process file ------------------------------#
@@ -84,6 +98,7 @@ for nn in range(ens_size):
         element_size=[domain["dx"], domain["dz"]],
     )
     sim.msh.swap_axis("y", "z")
+
     # specify points and lines for boundary conditions and output
     sim.gli.generate(
         "rectangular",
@@ -115,7 +130,8 @@ for nn in range(ens_size):
     )
     sim.msp.add_block(DENSITY=[1, 2000])
 
-    BI.structure(seed=20201012 + nn)
+    ### --------------------heterogeneous K: binary structure ------------------ #
+    BI.structure(seed=20201012 + sim_id)
     BI.structure2mesh(
             sim.msh.centroids_flat, 
             x0=domain["x_0"], 
@@ -139,11 +155,9 @@ for nn in range(ens_size):
         STORAGE="1 {}".format(storage),
         MASS_DISPERSION=[1, dispersivity_long, dispersivity_trans],
     )
-    # sim.mmp.update_block(PERMEABILITY_TENSOR=['ISOTROPIC', '1e-6']) # for homogeneous K-distribution
     sim.mmp.update_block(PERMEABILITY_DISTRIBUTION=sim.mpd.file_name)
 
-    ### -------- boundary, source and innitial condition file --------------------- #
-    ### flow Boundary conditions depending on bc
+    ### -------- boundary, source and initial condition file --------------------- #
     sim.bc.add_block(
         PCS_TYPE="GROUNDWATER_FLOW",
         PRIMARY_VARIABLE="HEAD",
@@ -210,13 +224,13 @@ for nn in range(ens_size):
     sim.tim.add_block(
         PCS_TYPE="GROUNDWATER_FLOW",
         TIME_START=0,
-        TIME_END=864000,
+        TIME_END=86400000,
         TIME_STEPS=zip(time_steps, time_step_size),
     )
     sim.tim.add_block(
         PCS_TYPE="MASS_TRANSPORT",
         TIME_START=0,
-        TIME_END=7200,  # 86400000,
+        TIME_END=86400000,
         TIME_STEPS=zip(time_steps, time_step_size),
     )
     ###  output file
@@ -239,14 +253,15 @@ for nn in range(ens_size):
         ELE_GAUSS_POINTS=3,
     )
 
-    print("write files")
+    print("Write Tranport Simulation files to directory: {}".format(sim.task_root))
     sim.write_input()
 
-    print("run simulation R={}".format(nn))
+    print("Run Tranport Simulation in directory: {}".format(sim.task_root))
     success = sim.run_model()
 
     if success:
-        print("Postprocess simulation results R={}".format(nn))
+        print("Simulation {} finished successfully.".format(sim_id))
+        print("Postprocessing realization results.")
 
         out = sim.readvtk()
         times = out[""]["TIME"][1:]
@@ -262,27 +277,36 @@ for nn in range(ens_size):
 
         RM = sp.RealizationMass(mass_time, times, xm)  # ,normalize=False)
         if RM.convergence:
-            print("Simulation converged properly")
+            print("Simulation converged properly.")
             RM.write_results(file_name="{}/Mass_distribution.csv".format(sim.task_root))
             ensemble_mass.append(RM.mass)
+    else:
+        print("Simulation {} did not finish successfully.".format(sim_id))
 
 ###############################
 ### Calculate Ensemble Mean ###
 ###############################
+print("################################")
+print("Ensemble run finished.")
+print("Postprocessing ensemble results.")
 
 ensemble_mean = np.mean(np.array(ensemble_mass), axis=0)
 EM = sp.RealizationMass(ensemble_mean, times, xm, normalize=False)
-EM.write_results(file_name="../results/simulations/Ensemble_mean.csv")
+EM.write_results(file_name = file_ensmean)
 EM.aggregate(agg=10)
-EM.write_results(file_name="../results/simulations/Ensemble_mean_agg.csv")
+EM.write_results(file_name=file_ensmean_agg)
+print("Ensemble means saved to file:\n",file_ensmean)
 
 ##########################
 ### Plot Ensemble Mean ###
 ##########################
 
+print("Plot ensemble results.")
 plt.plot(EM.x, EM.mass[:, :].T)
 plt.grid(True)
 plt.xlabel("Distance from source $x$ [m]")
 plt.ylabel("Mass distribution $M(x)$")
 plt.tight_layout()
-plt.savefig("../results/Ensemble_mean_aggregated.png", dpi=300)
+
+plt.savefig(fig_ensmean, dpi=300)
+print("Plot of ensemble saved to:\n",fig_ensmean)

@@ -1,9 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Oct 15 10:26:04 2020
+Subsurface flow and tranport simulation in a random binary inclusion structure
+with the FEM solver of the groundwater flow equation and advection-dispersion-
+equation OpenGeoSys.
 
-@author: zech0001
+This script allows to perform a 2D simulation according to the flow and transport 
+situation of the MADE-1 tracer tests (Columbus, Mississippi) in a 2D setting 
+with a binary inclusion structure of hydraulic conductivity. 
+
+Simulation are performed with the FEM solver OpenGeoSys (OGS5) for subsurface 
+flow and transport controlled via the API ogs5py: Initialization of the project, 
+writing files, simulation run and reading of simulation results. Setting-addapted 
+conductivity fields are generated with the script binary_inclusions.
+ 
+@author: A. Zech
+Licence MIT, A.Zech, 2020
 """
 
 import numpy as np
@@ -14,7 +26,7 @@ import binary_inclusions as bi
 ############################
 ### Simulation Settings  ###
 ############################
-nn = 10  # ID of realization
+sim_id = 10  # ID of realization
 
 ### hydraulic properties
 porosity = 0.31
@@ -28,24 +40,49 @@ domain = {"x_0": -20, "x_L": 200, "z_0": 52, "z_L": 62, "dx": 0.25, "dz": 0.05}
 head_left, head_right = 63.0, 62.34
 source_pump = 1.166e-5
 
-time_steps = np.array([72, 997])
+### simulation time stepping and output time steps
+time_steps = np.array([72, 500])
 time_step_size = np.array([3600, 86400])
-out_steps = 86400.0 * np.array([9, 49, 126, 202, 279, 370, 503, 594, 1000])
-
-# time_steps      = np.array([10])
-# time_step_size  = np.array([86400])
-# out_steps       = 86400.*np.array([1,5,10])
+out_steps = 86400.0 * np.array([9, 49, 126, 202, 279, 370, 503])
 
 ### time dependent source/boundary conditions
 rfd_tim = [0, 86400.0, 172800.0, 176400.0, 259200.0, 864000.0, 8640000.0, 86400000.0]
 rfd_mass = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0]
 
+####################################################
+### Settings of block binary inclusion structure ###
+####################################################
+
+settings_binaryinclusions = dict(
+    dim=2,          # dimensionality of structure
+    k_bulk=1e-5,    # conductivity value of bulk
+    k_incl=1e-3,    # conductivity value of inclusions
+    nx=22,          # number of units in x-direction
+    lx=10,          # unit length in x-direction
+    nz=20,          # number of units in z-direction
+    lz=0.5,         # unit length in z-direction
+    nz_incl=3,      # number of inclusions (units with K_incl)
+)
+
+settings_binaryinclusions = dict(
+    dim=2,                  # dimensionality of structure
+    axis=0,                 # direction of blocks (x=0,z=1,y=2)
+    k_bulk=[keff1, keff2],  # conductivity value of bulk
+    k_incl=[keff2, keff1],  # conductivity value of inclusions
+    nn=[4, 20],             # number of units per block (in x-direction)
+    ll=[10, 10],            # unit length within each block (in x-direction)
+    nz=20,                  # number of units in z-direction
+    lz=0.5,                 # unit length in z-direction
+    nn_incl=[3, 3],         # number of inclusions (units with K_incl)
+)
+
 ###############################
 ### Setup Simulation Files  ###
 ###############################
+print("Initiate Tranport Simulation with OpenGeoSys")
 
 ### ------------------------generate ogs base class------------------------- #
-sim = ogs5py.OGS(task_root="../results/sim_{}".format(nn), task_id="sim_{}_".format(nn))
+sim = ogs5py.OGS(task_root="../results/sim_{}".format(sim_id), task_id="sim_{}_".format(sim_id))
 
 ### ----------------------- write process file ------------------------------#
 sim.pcs.add_block(PCS_TYPE="GROUNDWATER_FLOW")
@@ -116,21 +153,9 @@ sim.mpd.add_block(
     DIS_TYPE="ELEMENT"
 )
 
-###########################################
-### Block binary inclusion structure
-BI = bi.Block_Binary_Inclusions(
-    dim=2,
-    axis=0,
-    k_bulk=[keff1, keff2],  # conductivity value of bulk
-    k_incl=[keff2, keff1],  # conductivity value of inclusions
-    nn=[4, 20],  # number of inclusions-blocks in x-direction
-    ll=[10, 10],  # inclusion length in x-direction
-    nz=20,  # number of inclusions in z-direction
-    lz=0.5,  # inclusion length in z-direction
-    nn_incl=[3, 3],  # number of inclusions within different K
-)
-
-BI.structure(bimodalKeff=True, seed=20201101 + nn)
+### Initialize block binary inclusion structure ###
+BI = bi.Block_Binary_Inclusions(**settings_binaryinclusions)
+BI.structure(bimodalKeff=True, seed=20201101 + sim_id)
 BI.structure2mesh(sim.msh.centroids_flat, x0=domain["x_0"], z0=domain["z_0"])
 
 sim.mpd.update_block(DATA=zip(range(len(BI.kk_mesh)), BI.kk_mesh))
@@ -140,7 +165,7 @@ sim.mpd.write_file()
 ### set conductivity to binary inclusion structure
 sim.mmp.update_block(PERMEABILITY_DISTRIBUTION=sim.mpd.file_name)
 
-### -------- boundary, source and innitial condition file --------------------- #
+### -------- boundary, source and initial condition file --------------------- #
 ### flow Boundary conditions depending on bc
 sim.bc.add_block(
     PCS_TYPE="GROUNDWATER_FLOW",
@@ -208,13 +233,13 @@ sim.ic.add_block(
 sim.tim.add_block(
     PCS_TYPE="GROUNDWATER_FLOW",
     TIME_START=0,
-    TIME_END=864000,
+    TIME_END=86400000,
     TIME_STEPS=zip(time_steps, time_step_size),
 )
 sim.tim.add_block(
     PCS_TYPE="MASS_TRANSPORT",
     TIME_START=0,
-    TIME_END=7200,  # 86400000,
+    TIME_END=86400000,
     TIME_STEPS=zip(time_steps, time_step_size),
 )
 ###  output file
@@ -241,37 +266,43 @@ sim.num.add_block(  # set the parameters for the solver
 ### Write OGS input files and run simulation ###
 ################################################
 
+print("Write Tranport Simulation files to directory: {}".format(sim.task_root))
 sim.write_input()
-success = sim.run_model()
 
-### export binary conductivity structure for vtk-visualization
-sim.msh.export_mesh(
+sim.msh.export_mesh(# export binary conductivity structure for vtk-visualization
     filepath="{}/conductivity.vtu".format(sim.task_root),
     file_format="vtk",
     cell_data_by_id={"transmissivity": BI.kk_mesh},
 )
 
+print("Run Tranport Simulation in directory: {}".format(sim.task_root))
+success = sim.run_model()
+
 ####################################
 ### Visualize simulation results ###
 ####################################
 if success:
-
+    print("Simulation finished successfully.")
+    it_out = -1
+    
     out = sim.readvtk()
     times = out[""]["TIME"]
     points = out[""]["DATA"][1]["points"]
     ### Mass distribution at last output time
-    mass = out[""]["DATA"][-1]["point_data"]["CONCENTRATION1"]
+    mass = out[""]["DATA"][it_out]["point_data"]["CONCENTRATION1"]
     mass = np.where(mass > 0, mass, 0)
 
     xmesh = points[:, 0].reshape(-1, domain["nx"] + 1)
     zmesh = points[:, 2].reshape(-1, domain["nx"] + 1)
     mass_mesh = mass.reshape(-1, domain["nx"] + 1)
 
+    print("Postprocessing: Plot of tracer plume")
     fig = plt.figure(figsize=[10, 2.5])
     ax = fig.add_subplot(1, 1, 1)
     colormap = plt.get_cmap("bone_r")
 
-    ixmax = int(100 / domain["dx"])  # limit plot in x-direction to 80m
+#    ixmax = int(100 / domain["dx"])  # limit plot in x-direction to 80m
+    ixmax = int(200 / domain["dx"])  # limit plot in x-direction to 80m
     ax.contourf(
         xmesh[:, :ixmax],
         zmesh[:, :ixmax],
@@ -282,14 +313,14 @@ if success:
     ax.text(
         0.85,
         0.08,
-        "$T={:.0f}$ days".format(times[-1] / 86400),
+        "$T={:.0f}$ days".format(times[it_out] / 86400),
         bbox=dict(facecolor="w"),
         transform=ax.transAxes,
     )
     ax.text(
         0.03,
         0.88,
-        "R{:.0f}".format(nn),
+        "R{:.0f}".format(sim_id),
         bbox=dict(facecolor="w"),
         transform=ax.transAxes,
     )
@@ -298,7 +329,12 @@ if success:
     ax.set_xlabel("Distance from source $x$ [m]")
     ax.set_ylabel("Depth $z$ [m]")
     fig.tight_layout()
+
+    print("Postprocessing: Save plot of tracer plume to /results.")
     plt.savefig(
-        "../results/Simulation_R{:.0f}_T{:.0f}.png".format(nn, times[-1] / 86400),
+        "../results/Simulation_R{:.0f}_T{:.0f}.png".format(sim_id, times[it_out] / 86400),
         dpi=300,
     )
+
+else:
+    print("Simulation did not finish successfully.")

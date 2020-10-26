@@ -3,11 +3,12 @@
 """
 Created on Thu Dec  6 15:37:59 2018
 
-@author: zech
+@author: A. Zech
+Licence MIT, A.Zech, 2020
 """
+
 import numpy as np
 from scipy.integrate import cumtrapz
-
 
 def long_average(points, values, coord="x"):
 
@@ -107,6 +108,8 @@ class RealizationMass:
 
     def norm_values(self):
 
+        """ Calculate norm value of mass distribution """
+        
         self.norm = np.zeros_like(self.t)
         for i in range(len(self.t)):
             self.norm[i] = np.trapz(self.mass[i, :], x=self.x)
@@ -115,13 +118,19 @@ class RealizationMass:
 
     def non_negative(self):
 
+        """ remove negative values (as result of numerical oscillation)  """
+
         self.mass = np.where(self.mass >= 0, self.mass, 0)
 
     def normalize(self):
 
+        """ Normalize mass """
+
         self.mass = self.mass / np.tile(self.norm, (len(self.x), 1)).T
 
     def aggregate(self, agg, loc0=0, normalize=True):
+
+        """ Aggregate data to arguments at aggregation level  """
 
         if agg < 0:
             raise ValueError("Invalid aggregation level lower then 0")
@@ -131,8 +140,6 @@ class RealizationMass:
             print("Data already at aggregation level")
         else:
             self.agg = agg
-
-        """ Aggregate data to arguments at aggregation level  """
 
         loc = min(loc0, self.x[0])
         cxt_agg = []
@@ -166,6 +173,8 @@ class RealizationMass:
 
     def convergence(self, sill1=-1, sill2=1000):
 
+        """ check for convergence """
+        
         check_mass = self.mass / np.tile(self.norm, (len(self.x), 1)).T
 
         test01 = np.any(np.isnan(self.norm))  ### nan-value in norm
@@ -216,7 +225,8 @@ class RealizationMass:
     def write_results(self, file_name=False):
 
         """
-            Routing to save simulation results to file
+            summarizing mass and coordinates into one matrix
+            for saving simulation results of a realization to a file
         """
         write_results = np.zeros((len(self.t) + 1, len(self.x) + 1))
         write_results[1:, 0] = self.t

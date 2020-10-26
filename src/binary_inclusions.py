@@ -1,33 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct  9 17:09:00 2020
 
-@author: zech0001
+@author: A. Zech
+Licence MIT, A.Zech, 2020
+
 """
 
 import numpy as np
 import copy
 
-
+### Standard parameter set for simple binary inclusion structure
 parameters_simple_DEF = dict(
-    k_bulk=1e-5,  # conductivity value of bulk
-    k_incl=1e-3,  # conductivity value of inclusions
-    lx=10,  # inclusion length in x-direction
-    ly=10,  # inclusion length in y-direction
-    lz=0.5,  # inclusion length in z-direction
-    nx=5,  # number of inclusions in x-direction
-    ny=3,  # number of inclusions in y-direction
-    nz=10,  # number of inclusions in z-direction
-    nz_incl=3,  # number of inclusions within different Kvalue in z-block
+    k_bulk=1e-5,    # conductivity value of bulk
+    k_incl=1e-3,    # conductivity value of inclusions
+    lx=10,          # inclusion length in x-direction
+    ly=10,          # unit length in y-direction
+    lz=0.5,         # unit length in z-direction
+    nx=10,          # number of units in x-direction
+    ny=10,          # number of units in y-direction
+    nz=10,          # number of units in z-direction
+    nz_incl=3,      # number of inclusions (units of K_incl per z-block)
 )
 
+### Standard parameter set for block binary inclusion structure
 parameters_block_DEF = dict(
-    k_bulk=[1e-5, 1e-3],  # conductivity value of bulk
-    k_incl=[1e-3, 1e-5],  # conductivity value of inclusions
-    nn=[5, 5],  # number of inclusions per block
-    ll=[10, 10],  # inclusion length
-    nn_incl=[3, 3],  # number of inclusions with different Kvalue
+    k_bulk=[1e-5, 1e-3],    # bulk conductivity
+    k_incl=[1e-3, 1e-5],    # conductivity value of inclusions
+    nn=[10, 10],            # number of units per block
+    ll=[10, 10],            # unit length
+    nn_incl=[3, 3],         # number of inclusions (units with K_incl)
 )
 
 
@@ -116,6 +118,7 @@ class Simple_Binary_Inclusions:
         return self.kk
 
     def structure2scale(self, x0=0, y0=0, z0=0, endpoint=True):
+
         """
         routine to set up coordiate arrays x,y,z which related random structure
         to spatial coordinates with specified domain dimensions according to 
@@ -156,6 +159,8 @@ class Simple_Binary_Inclusions:
             self.z = z0 + np.arange(
                 0, self.parameters["nz"] * self.parameters["lz"], self.parameters["lz"]
             )
+            
+        return self.x,self.y,self.z
 
     def structure2mesh(self, mesh, **kwargs):
 
@@ -165,13 +170,12 @@ class Simple_Binary_Inclusions:
                
         Input 
         -----
-            mesh    - array specifying coordinates of unstructuresd mesh points
-                      Format: [3xn] with
-                          x,y,z coordinates
-                          n = number of points
+            mesh    - 2D array of shape nx3
+                        x,y,z - coordinates of unstructuresd mesh points,                
+                        n = number of points
         Output
         ------
-            kk_mesh - array of length n 
+            kk_mesh - 1D array of length n 
                         with conductivity values at particular coordinates 
                         specified in mesh-array        
         """
@@ -240,11 +244,10 @@ class Block_Binary_Inclusions:
                             (length corresponds to number of blocks)
             lx,ly,lz    -   unit length in each domain direction
             nx,ny,nz    -   number of units per direction
-
             nn          -   array containing unit number per block 
                             (length corresponds to number of blocks)
                             (overwrites nx, ny, or nz depending on specified axis)
-            ll          -   array containing inclusion length per block 
+            ll          -   array containing unit length per block 
                             (length corresponds to number of blocks)
                             (overwrites lx, ly, or lz depending on specified axis)
             nn_incl     -   array containing inclusion number per block 
