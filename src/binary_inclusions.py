@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Binary inclusions generators.
 
 @author: A. Zech
 Licence MIT, A.Zech, 2020
@@ -44,13 +44,13 @@ class Simple_Binary_Inclusions:
             K_incl      -   conductivity value of inclusions
             lx,ly,lz    -   unit length in each domain direction
             nx,ny,nz    -   number of units per direction
-            nz_incl     -   number of inclusions (units of different K) 
+            nz_incl     -   number of inclusions (units of different K)
                             per block
 
         Routines:
-            structure   
+            structure
                 -   generating a random structure
-            structure2scale     
+            structure2scale
                 - relates binary structure to unit lengths
             structure2mesh
                 - relates binary structure to specified numerical mesh
@@ -71,11 +71,11 @@ class Simple_Binary_Inclusions:
 
     def structure(self, seed=None, bimodalKeff=False):
 
-        """ 
-        Create binary structure in 2D or 3D with bulk conductivity 'k_bulk' 
-        and a number of inclusions of conductivity which form small blocks 
-        within the bulk 
-                       
+        """
+        Create binary structure in 2D or 3D with bulk conductivity 'k_bulk'
+        and a number of inclusions of conductivity which form small blocks
+        within the bulk
+
         """
 
         if seed != None:
@@ -121,12 +121,12 @@ class Simple_Binary_Inclusions:
 
         """
         routine to set up coordiate arrays x,y,z which related random structure
-        to spatial coordinates with specified domain dimensions according to 
+        to spatial coordinates with specified domain dimensions according to
         unit lengths
-       
+
         Input (optional)
         -----
-            x0,y0,z0    - initial points of domain 
+            x0,y0,z0    - initial points of domain
 
         """
 
@@ -159,25 +159,25 @@ class Simple_Binary_Inclusions:
             self.z = z0 + np.arange(
                 0, self.parameters["nz"] * self.parameters["lz"], self.parameters["lz"]
             )
-            
+
         return self.x,self.y,self.z
 
     def structure2mesh(self, mesh, **kwargs):
 
         """
-        maps random binary structure to a specified numerical 
+        maps random binary structure to a specified numerical
         (unstructured) mesh by identifying the corresponding field index
-               
-        Input 
+
+        Input
         -----
             mesh    - 2D array of shape nx3
-                        x,y,z - coordinates of unstructuresd mesh points,                
+                        x,y,z - coordinates of unstructuresd mesh points,
                         n = number of points
         Output
         ------
-            kk_mesh - 1D array of length n 
-                        with conductivity values at particular coordinates 
-                        specified in mesh-array        
+            kk_mesh - 1D array of length n
+                        with conductivity values at particular coordinates
+                        specified in mesh-array
         """
 
         self.structure2scale(**kwargs, endpoint=False)
@@ -205,8 +205,8 @@ class Simple_Binary_Inclusions:
     def bimodal_Keff(self, k1, k2):
 
         """
-        Calculates conductivity values of bulk and inclusions 
-        from average effective values based on binary statistics    
+        Calculates conductivity values of bulk and inclusions
+        from average effective values based on binary statistics
         """
 
         pp = self.parameters["nz_incl"] / self.parameters["nz"]
@@ -229,7 +229,7 @@ class Block_Binary_Inclusions:
 
     """ Class to create complex block binary inclusion structure in 2D or 3D
         as bimodal conductivity structure in transport simulations
-        
+
         Concatenates blocks of different inclusion structure in one direction
 
         Class properties:
@@ -238,25 +238,25 @@ class Block_Binary_Inclusions:
                             0 = x
                             1 = z
                             2 = y
-            K_bulk      -   array of bulk conductivity 
+            K_bulk      -   array of bulk conductivity
                             (length corresponds to number of blocks)
             K_incl      -   array of conductivity values for inclusions
                             (length corresponds to number of blocks)
             lx,ly,lz    -   unit length in each domain direction
             nx,ny,nz    -   number of units per direction
-            nn          -   array containing unit number per block 
+            nn          -   array containing unit number per block
                             (length corresponds to number of blocks)
                             (overwrites nx, ny, or nz depending on specified axis)
-            ll          -   array containing unit length per block 
+            ll          -   array containing unit length per block
                             (length corresponds to number of blocks)
                             (overwrites lx, ly, or lz depending on specified axis)
-            nn_incl     -   array containing inclusion number per block 
+            nn_incl     -   array containing inclusion number per block
                             (length corresponds to number of blocks)
 
         Routines:
-            structure   
+            structure
                 -   generating a random structure
-            structure2scale     
+            structure2scale
                 - relates binary structure to unit lengths
             structure2mesh
                 - relates binary structure to specified numerical mesh
@@ -276,9 +276,9 @@ class Block_Binary_Inclusions:
 
     def structure(self, seed=None, bimodalKeff=False):
 
-        """ 
-        Creates binary inclusion structure in 2D or 3D by concatenating 
-        blocks of simple binary inclusion structure.                     
+        """
+        Creates binary inclusion structure in 2D or 3D by concatenating
+        blocks of simple binary inclusion structure.
         """
 
         if seed != None:
@@ -290,17 +290,17 @@ class Block_Binary_Inclusions:
             BIS = Simple_Binary_Inclusions(dim=self.dim, **self.parameters)
             if self.axis == 0:
                 BIS.parameters.update(
-                    nx=self.parameters["nn"][ii], 
+                    nx=self.parameters["nn"][ii],
                     lx=self.parameters["ll"][ii]
                 )
             elif self.axis == 1:
                 BIS.parameters.update(
-                    nz=self.parameters["nn"][ii], 
+                    nz=self.parameters["nn"][ii],
                     lz=self.parameters["ll"][ii]
                 )
             elif self.axis == 2:
                 BIS.parameters.update(
-                    ny=self.parameters["nn"][ii], 
+                    ny=self.parameters["nn"][ii],
                     ly=self.parameters["ll"][ii]
                 )
             BIS.parameters.update(
@@ -327,12 +327,12 @@ class Block_Binary_Inclusions:
 
         """
         routine to set up coordiate arrays x,y,z which related random structure
-        to spatial coordinates with specified domain dimensions according to 
+        to spatial coordinates with specified domain dimensions according to
         unit lengths
-       
+
         Input (optional)
         -----
-            x0,y0,z0    - initial points of domain 
+            x0,y0,z0    - initial points of domain
 
         """
 
@@ -383,10 +383,10 @@ class Block_Binary_Inclusions:
     def structure2mesh(self, mesh, **kwargs):
 
         """
-        maps random binary structure to a specified numerical 
+        maps random binary structure to a specified numerical
         (unstructured) mesh by identifying the corresponding field index
-               
-        Input 
+
+        Input
         -----
             mesh    - array specifying coordinates of unstructuresd mesh points
                       Format: [3xn] with
@@ -394,9 +394,9 @@ class Block_Binary_Inclusions:
                           n = number of points
         Output
         ------
-            kk_mesh - array of length n 
-                        with conductivity values at particular coordinates 
-                        specified in mesh-array        
+            kk_mesh - array of length n
+                        with conductivity values at particular coordinates
+                        specified in mesh-array
         """
 
         self.structure2scale(**kwargs, endpoint=True)
@@ -426,24 +426,24 @@ class Block_Binary_Inclusions:
 
 def random_unique(n, size=1):
 
-    """  Return array of length 'size', containing unique integer random 
+    """  Return array of length 'size', containing unique integer random
          numbers between 0 and N
 
          Return random integers from the "discrete uniform" distribution of
-         in the half-open interval [0, N). 
+         in the half-open interval [0, N).
 
-         Parameters    
+         Parameters
          ----------
-         N          : int    
+         N          : int
                       one above the largest (signed) integer to be drawn from
          size       : int, optional
                       length of array
-        
+
         Returns
         ------
         aa_unique   : array
-                      array of unique random values 
-    
+                      array of unique random values
+
     """
 
     aa = np.random.randint(n, size=2 * size)
@@ -463,15 +463,15 @@ def unique_unsorted(aa):
     """
         Return unique values of aa in order of appearance
         Values are not sorted as done by unique
-        
-        Parameters    
+
+        Parameters
         ----------
         aa          : array
                       array of values
- 
+
         Returns
         ------
-        aa_unique   : array 
+        aa_unique   : array
                       aa reduced to the unique values (unsorted)
     """
 
@@ -487,12 +487,12 @@ def find_nearest_index(value, array):
 
         Parameter
         ---------
-        
-        value       :   float    
+
+        value       :   float
                         index of this number will be found in array
         array       :   array
                         search for nearest match in this numpy array
-        
+
         Return
         ------
         index       :   int

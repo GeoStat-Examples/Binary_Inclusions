@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec  6 15:37:59 2018
+Post processing routines.
 
 @author: A. Zech
 Licence MIT, A.Zech, 2020
@@ -12,27 +11,27 @@ from scipy.integrate import cumtrapz
 
 def long_average(points, values, coord="x"):
 
-    """ Average given values defined at points (x,y,z) along a chosen coordinate. 
-    Default setting gives a longitudinal average where values are averaged 
-    over y and z coordinate. 
-    
+    """ Average given values defined at points (x,y,z) along a chosen coordinate.
+    Default setting gives a longitudinal average where values are averaged
+    over y and z coordinate.
+
     Definition
     ----------
     arg_list, long_average    =    long_average(points,values)
-    
+
     Input
     ----------
     points      :   array
                     list of coordinates (same length as array of values)
     valuees     :   array
                     values of quantity at coordinates (same length as 'points')
-                    
+
     Output
     ---------
-    arg_list    :   array 
-                    locations x of averaged values 
-    ens_data    :   array 
-                    averaged quantity C(x) 
+    arg_list    :   array
+                    locations x of averaged values
+    ens_data    :   array
+                    averaged quantity C(x)
        """
 
     if len(points) != len(values):
@@ -61,10 +60,10 @@ class RealizationMass:
 
     """
     Class for postprocessing simulated mass distribution by OGS
-        - calculate norm values 
+        - calculate norm values
             self.norm_values()
-        - exclude negative values: 
-            self.non_negative()   
+        - exclude negative values:
+            self.non_negative()
         - recalcuate norm & normalize
             self.norm_values()
             self.normalize()
@@ -86,16 +85,10 @@ class RealizationMass:
         self.x = np.array(x, ndmin=1, dtype=float)
         self.t = np.array(times, ndmin=1, dtype=float)
 
-        #        print(self.mass.shape,(len(self.x),len(self.t)))
         if self.mass.shape == (len(self.x), len(self.t)):
             self.mass.transpose()
         elif self.mass.shape != (len(self.t), len(self.x)):
             raise ValueError("dimensions of mass, time and x-coordinate do not match")
-
-        #        def __init__(self,data,normalize=True):
-        #        self.mass=np.array(data[1:,1:], ndmin=2, dtype=float)
-        #        self.x=np.array(data[0,1:], ndmin=1, dtype=float)
-        #        self.t=np.array(data[1:,0], ndmin=1, dtype=float)
 
         if normalize:
             self.non_negative()
@@ -109,7 +102,7 @@ class RealizationMass:
     def norm_values(self):
 
         """ Calculate norm value of mass distribution """
-        
+
         self.norm = np.zeros_like(self.t)
         for i in range(len(self.t)):
             self.norm[i] = np.trapz(self.mass[i, :], x=self.x)
@@ -174,7 +167,7 @@ class RealizationMass:
     def convergence(self, sill1=-1, sill2=1000):
 
         """ check for convergence """
-        
+
         check_mass = self.mass / np.tile(self.norm, (len(self.x), 1)).T
 
         test01 = np.any(np.isnan(self.norm))  ### nan-value in norm

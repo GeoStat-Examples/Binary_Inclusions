@@ -1,6 +1,3 @@
-numpy 
-matplotlib
+ogs5py==1.1.1
 scipy
-copy
-gstools==1.2.1
-ogs5py
+matplotlib

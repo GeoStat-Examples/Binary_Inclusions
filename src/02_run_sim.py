@@ -1,19 +1,18 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Subsurface flow and tranport simulation in a random binary inclusion structure
 with the FEM solver of the groundwater flow equation and advection-dispersion-
 equation OpenGeoSys.
 
-This script allows to perform a 2D simulation according to the flow and transport 
-situation of the MADE-1 tracer tests (Columbus, Mississippi) in a 2D setting 
-with a binary inclusion structure of hydraulic conductivity. 
+This script allows to perform a 2D simulation according to the flow and transport
+situation of the MADE-1 tracer tests (Columbus, Mississippi) in a 2D setting
+with a binary inclusion structure of hydraulic conductivity.
 
-Simulation are performed with the FEM solver OpenGeoSys (OGS5) for subsurface 
-flow and transport controlled via the API ogs5py: Initialization of the project, 
-writing files, simulation run and reading of simulation results. Setting-addapted 
+Simulation are performed with the FEM solver OpenGeoSys (OGS5) for subsurface
+flow and transport controlled via the API ogs5py: Initialization of the project,
+writing files, simulation run and reading of simulation results. Setting-addapted
 conductivity fields are generated with the script binary_inclusions.
- 
+
 @author: A. Zech
 Licence MIT, A.Zech, 2020
 """
@@ -115,21 +114,21 @@ sim.gli.add_polyline(points=[0, 3], name="left")
 sim.gli.add_polyline(points=[2, 3], name="top")
 sim.gli.add_polyline(points=[1, 2], name="right")
 sim.gli.add_polyline(
-    points=[[0, domain["z_0"] + 5.2, 0], [0, domain["z_0"] + 5.8, 0]], 
+    points=[[0, domain["z_0"] + 5.2, 0], [0, domain["z_0"] + 5.8, 0]],
     name="source"
 )
 sim.gli.swap_axis("y", "z")
 
 ### -----------------------  properties------------------------------------- #
 sim.mfp.add_block(  # FLUID_PROPERTIES
-    FLUID_TYPE="LIQUID", 
-    PCS_TYPE="HEAD", 
-    DENSITY=[1, 1000.0], 
+    FLUID_TYPE="LIQUID",
+    PCS_TYPE="HEAD",
+    DENSITY=[1, 1000.0],
     VISCOSITY=[1, 0.001]
 )
 sim.mcp.add_block(
-        NAME="CONCENTRATION1", 
-        MOBILE=1, 
+        NAME="CONCENTRATION1",
+        MOBILE=1,
         DIFFUSION=[1, 1.0e-08]
         )
 sim.msp.add_block(DENSITY=[1, 2000])
@@ -142,14 +141,13 @@ sim.mmp.add_block(
     STORAGE="1 {}".format(storage),
     MASS_DISPERSION=[1, dispersivity_long, dispersivity_trans],
 )
-# sim.mmp.update_block(PERMEABILITY_TENSOR=['ISOTROPIC', '1e-6']) # for homogeneous K-distribution
 
 ### --------------------heterogeneous K: binary structure ------------------ #
 
 sim.mpd.add(name="conductivity")
 sim.mpd.add_block(
-    MSH_TYPE="GROUNDWATER_FLOW", 
-    MMP_TYPE="PERMEABILITY", 
+    MSH_TYPE="GROUNDWATER_FLOW",
+    MMP_TYPE="PERMEABILITY",
     DIS_TYPE="ELEMENT"
 )
 
@@ -269,7 +267,7 @@ sim.num.add_block(  # set the parameters for the solver
 print("Write Tranport Simulation files to directory: {}".format(sim.task_root))
 sim.write_input()
 
-sim.msh.export_mesh(# export binary conductivity structure for vtk-visualization
+sim.msh.export_mesh(  # export binary conductivity structure for vtk-visualization
     filepath="{}/conductivity.vtu".format(sim.task_root),
     file_format="vtk",
     cell_data_by_id={"transmissivity": BI.kk_mesh},
@@ -284,7 +282,7 @@ success = sim.run_model()
 if success:
     print("Simulation finished successfully.")
     it_out = -1
-    
+
     out = sim.readvtk()
     times = out[""]["TIME"]
     points = out[""]["DATA"][1]["points"]
@@ -301,8 +299,7 @@ if success:
     ax = fig.add_subplot(1, 1, 1)
     colormap = plt.get_cmap("bone_r")
 
-#    ixmax = int(100 / domain["dx"])  # limit plot in x-direction to 80m
-    ixmax = int(200 / domain["dx"])  # limit plot in x-direction to 80m
+    ixmax = int(200 / domain["dx"])
     ax.contourf(
         xmesh[:, :ixmax],
         zmesh[:, :ixmax],

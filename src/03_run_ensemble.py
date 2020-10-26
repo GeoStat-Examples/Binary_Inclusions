@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script to run an ensemble of subsurface flow and transport simulations with 
-OpenGeoSys (via the API ogs5py) on random binary inclusion structures of 
+Script to run an ensemble of subsurface flow and transport simulations with
+OpenGeoSys (via the API ogs5py) on random binary inclusion structures of
 hydraulic conductivity.
 
 @author: A. Zech
@@ -111,21 +110,21 @@ for sim_id in range(ens_size):
     sim.gli.add_polyline(points=[2, 3], name="top")
     sim.gli.add_polyline(points=[1, 2], name="right")
     sim.gli.add_polyline(
-        points=[[0, domain["z_0"] + 5.2, 0], [0, domain["z_0"] + 5.8, 0]], 
+        points=[[0, domain["z_0"] + 5.2, 0], [0, domain["z_0"] + 5.8, 0]],
         name="source"
     )
     sim.gli.swap_axis("y", "z")
 
     ### -----------------------  properties------------------------------------- #
     sim.mfp.add_block(  # FLUID_PROPERTIES
-        FLUID_TYPE="LIQUID", 
-        PCS_TYPE="HEAD", 
-        DENSITY=[1, 1000.0], 
+        FLUID_TYPE="LIQUID",
+        PCS_TYPE="HEAD",
+        DENSITY=[1, 1000.0],
         VISCOSITY=[1, 0.001]
     )
     sim.mcp.add_block(
-            NAME="CONCENTRATION1", 
-            MOBILE=1, 
+            NAME="CONCENTRATION1",
+            MOBILE=1,
             DIFFUSION=[1, 1.0e-08]
     )
     sim.msp.add_block(DENSITY=[1, 2000])
@@ -133,15 +132,15 @@ for sim_id in range(ens_size):
     ### --------------------heterogeneous K: binary structure ------------------ #
     BI.structure(seed=20201012 + sim_id)
     BI.structure2mesh(
-            sim.msh.centroids_flat, 
-            x0=domain["x_0"], 
+            sim.msh.centroids_flat,
+            x0=domain["x_0"],
             z0=domain["z_0"]
     )
 
     sim.mpd.add(name="conductivity")
     sim.mpd.add_block(
-        MSH_TYPE="GROUNDWATER_FLOW", 
-        MMP_TYPE="PERMEABILITY", 
+        MSH_TYPE="GROUNDWATER_FLOW",
+        MMP_TYPE="PERMEABILITY",
         DIS_TYPE="ELEMENT"
     )
     sim.mpd.update_block(DATA=zip(range(len(BI.kk_mesh)), BI.kk_mesh))

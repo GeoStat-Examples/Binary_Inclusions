@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Script to create and visualize random binary inclusion structures:
     - simple inclusion structure
     - block inclusion structure
-Fields are by default in 2D for visualization. 
+Fields are by default in 2D for visualization.
 
 Structures in 3D and different block arrangement can be created by modifying
 setting parameters, particular dim and/or axis
@@ -23,10 +22,10 @@ np.random.seed(20201101)
 ### Simple binary inclusion structure ###
 #########################################
 
-### initialize simple binary inclusion structure with specified settings 
-### as instance of the class Simple_Binary_Inclusions                    
+### initialize simple binary inclusion structure with specified settings
+### as instance of the class Simple_Binary_Inclusions
 BI = bi.Simple_Binary_Inclusions(
-    dim=2,          # dimesionality of structure    
+    dim=2,          # dimesionality of structure
     k_bulk=1e-5,    # bulk conductivity value
     k_incl=1e-3,    # conductivity value of inclusions
     nx=8,           # number of units in x-direction
@@ -54,12 +53,12 @@ print('Save figure of simple inclusion structure to ./results')
 ### Two block binary inclusion structure ###
 ############################################
 
-### initialize block binary inclusion structure with specified settings 
+### initialize block binary inclusion structure with specified settings
 ### as instance of the class Block_Binary_Inclusions
 BIB = bi.Block_Binary_Inclusions(
-    dim=2,                  # dimesionality of structure    
+    dim=2,                  # dimesionality of structure
     axis=0,                 # direction of multiple blocks (0=x, 1=z, 2=y)
-    k_bulk=[1e-5, 1e-3],    # bulk-conductivity value in each block 
+    k_bulk=[1e-5, 1e-3],    # bulk-conductivity value in each block
     k_incl=[1e-3, 1e-5],    # conductivity values of inclusions in each block
     nn=[4, 18],             # number of units within each block (now x-dir)
     ll=[10, 10],            # unit lengths within blocks (now x-dir)
