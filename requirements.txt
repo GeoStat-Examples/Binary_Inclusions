@@ -1,2 +1,6 @@
-gstools==1.2.1
+numpy 
 matplotlib
+scipy
+copy
+gstools==1.2.1
+ogs5py
