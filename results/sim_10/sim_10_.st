@@ -1,0 +1,25 @@
+|------------------ Written with ogs5py ------------------|
+#SOURCE_TERM
+  $PCS_TYPE
+   MASS_TRANSPORT
+  $PRIMARY_VARIABLE
+   CONCENTRATION1
+  $GEO_TYPE
+   POLYLINE source
+  $DIS_TYPE
+   CONSTANT_NEUMANN 1e-08
+  $TIM_TYPE
+   CURVE 1
+#SOURCE_TERM
+  $PCS_TYPE
+   GROUNDWATER_FLOW
+  $PRIMARY_VARIABLE
+   HEAD
+  $GEO_TYPE
+   POLYLINE source
+  $DIS_TYPE
+   CONSTANT_NEUMANN 1.166e-05
+  $TIM_TYPE
+   CURVE 1
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|

@@ -1,0 +1,12 @@
+|------------------ Written with ogs5py ------------------|
+#FLUID_PROPERTIES
+  $FLUID_TYPE
+   LIQUID
+  $DENSITY
+   1 1000.0
+  $VISCOSITY
+   1 0.001
+  $PCS_TYPE
+   HEAD
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|

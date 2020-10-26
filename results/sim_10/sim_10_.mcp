@@ -1,0 +1,10 @@
+|------------------ Written with ogs5py ------------------|
+#COMPONENT_PROPERTIES
+  $NAME
+   CONCENTRATION1
+  $MOBILE
+   1
+  $DIFFUSION
+   1 1e-08
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|

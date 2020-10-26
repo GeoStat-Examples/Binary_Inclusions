@@ -1,0 +1,23 @@
+|------------------ Written with ogs5py ------------------|
+#OUTPUT
+  $NOD_VALUES
+   HEAD
+   CONCENTRATION1
+  $ELE_VALUES
+   VELOCITY1_X
+   VELOCITY1_Y
+   VELOCITY1_Z
+  $GEO_TYPE
+   DOMAIN
+  $TIM_TYPE
+   777600.0
+   4233600.0
+   10886400.0
+   17452800.0
+   24105600.0
+   31968000.0
+   43459200.0
+  $DAT_TYPE
+   VTK
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|

@@ -1,0 +1,9 @@
+|------------------ Written with ogs5py ------------------|
+#PROCESS
+  $PCS_TYPE
+   GROUNDWATER_FLOW
+#PROCESS
+  $PCS_TYPE
+   MASS_TRANSPORT
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|

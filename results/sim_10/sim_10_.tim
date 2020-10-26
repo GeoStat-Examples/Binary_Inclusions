@@ -1,0 +1,23 @@
+|------------------ Written with ogs5py ------------------|
+#TIME_STEPPING
+  $PCS_TYPE
+   GROUNDWATER_FLOW
+  $TIME_START
+   0
+  $TIME_END
+   86400000
+  $TIME_STEPS
+   72 3600
+   500 86400
+#TIME_STEPPING
+  $PCS_TYPE
+   MASS_TRANSPORT
+  $TIME_START
+   0
+  $TIME_END
+   86400000
+  $TIME_STEPS
+   72 3600
+   500 86400
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|

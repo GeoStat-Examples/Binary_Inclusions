@@ -1,0 +1,17 @@
+|------------------ Written with ogs5py ------------------|
+#NUMERICS
+  $PCS_TYPE
+   GROUNDWATER_FLOW
+  $LINEAR_SOLVER
+   2 1 1e-12 1000 1.0 100 4
+  $ELE_GAUSS_POINTS
+   3
+#NUMERICS
+  $PCS_TYPE
+   MASS_TRANSPORT
+  $LINEAR_SOLVER
+   2 1 1e-08 100 1.0 100 4
+  $ELE_GAUSS_POINTS
+   3
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|

@@ -1,0 +1,18 @@
+|------------------ Written with ogs5py ------------------|
+#MEDIUM_PROPERTIES
+  $GEOMETRY_DIMENSION
+   2
+  $GEOMETRY_AREA
+   1.0
+  $POROSITY
+   1 0.31
+  $TORTUOSITY
+   1 1.0
+  $STORAGE
+   1 0.0001
+  $MASS_DISPERSION
+   1 0.01 0.01
+  $PERMEABILITY_DISTRIBUTION
+   conductivity.mpd
+#STOP
+|-- Written with ogs5py (1.1.1) on: 2020-10-26_11-26-17 --|
